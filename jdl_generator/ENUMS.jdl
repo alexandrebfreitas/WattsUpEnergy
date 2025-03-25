@@ -1,0 +1,6 @@
+enum Country {
+    BELGIUM (Belgium),
+    FRANCE (France),
+    ITALY (Italy),
+    CHINA ("中国")
+}

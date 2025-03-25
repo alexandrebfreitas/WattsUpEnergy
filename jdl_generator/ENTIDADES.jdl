@@ -1,0 +1,114 @@
+// ENTIDADES.jdl
+// Gerado automaticamente. Este arquivo contém apenas as entidades básicas.
+// Os campos e validações serão posteriormente adicionados via CAMPOS.py.
+
+entity Author (author){
+  /**
+   * Comment: Nome do autor
+   * Example: Nome do autor; deve ter entre 2 e 50 caracteres
+   */
+  name String required minlength(2) maxlength(50)
+  /**
+   * Annotations: unique
+   * Comment: E-mail do autor
+   * Example: Expressão regular para validação de e-mail
+   */
+  email String required maxlength(100) pattern(/^[A-Z][a-z]+\d$/) unique
+  /**
+   * Comment: Data de nascimento do autor
+   * Example: Formato de data; opcional
+   */
+  birthDate LocalDate
+  /**
+   * Comment: Biografia do autor
+   * Example: Campo para texto longo sem limite de caracteres
+   */
+  bio TextBlob
+  /**
+   * Annotations: Foto do autor
+   * Comment: Tamanho mínimo de 1KB e máximo de 2MB
+   */
+  photo ImageBlob max(1024) minbytes(2048000)
+}
+
+entity Book (book){
+  /**
+   * Comment: Título do livro
+   * Example: Entre 1 e 200 caracteres
+   */
+  title String required minlength(1) maxlength(200)
+  /**
+   * Annotations: unique
+   * Comment: Código ISBN do livro
+   * Example: Campo opcional, mas único se informado
+   */
+  isbn String minlength(10) maxlength(13) unique
+  /**
+   * Comment: Data de publicação
+   * Example: Data estimada de publicação
+   */
+  publicationDate LocalDate
+  /**
+   * Comment: Sinopse ou resumo do livro
+   * Example: Texto livre
+   */
+  summary TextBlob
+  /**
+   * Annotations: Capa do livro
+   * Comment: Mínimo 1KB, máximo ~5MB
+   */
+  cover ImageBlob max(1024) minbytes(5242880)
+}
+
+entity Profile (profile){
+  /**
+   * Annotations: unique
+   * Comment: Nome de usuário
+   * Example: Deve ter entre 3 e 30 caracteres
+   */
+  username String required minlength(3) maxlength(30) unique
+  /**
+   * Comment: Nome exibido no perfil
+   * Example: Campo para nome amigável ou apelido
+   */
+  displayName String maxlength(50)
+  /**
+   * Annotations: unique
+   * Comment: E-mail do perfil
+   * Example: Expressão regular para validação de e-mail
+   */
+  email String required maxlength(100) pattern(/^[A-Z][a-z]+\d$/) unique
+  /**
+   * Annotations: Foto de perfil
+   * Comment: Mínimo 1KB, máximo 2MB
+   */
+  avatar ImageBlob max(1024) minbytes(2048000)
+  /**
+   * Comment: Descrição do perfil
+   * Example: Campo destinado a textos longos
+   */
+  description TextBlob
+}
+
+
+
+enum Country {
+  /**
+   * Ex: Representa a Bélgica
+   * Valor explícito; se omitido, usa o próprio nome da chave
+   */
+  BELGIUM ("Belgium")
+  /**
+   * Ex: Representa a França
+   */
+  FRANCE ("France")
+  /**
+   * Ex: Representa a Itália
+   */
+  ITALY ("Italy")
+  /**
+   * Ex: Representa a China
+   * Uso de aspas para incluir caracteres especiais
+   */
+  CHINA ("中国")
+}

@@ -1,0 +1,22 @@
+dto Author with mapstruct
+service Author with serviceClass
+paginate Author with pagination
+search Author with elasticsearch
+microservice Author with mySuperMS
+angularSuffix Author with Author
+clientRootFolder Author with client
+readOnly Author
+
+dto Book with no
+service Book with serviceClass
+paginate Book with infinite-scroll
+search Book with elasticsearch
+readOnly Book
+
+dto Profile with mapstruct
+service Profile with serviceImpl
+paginate Profile with no pagination
+skipClient Profile
+microservice Profile with myOtherMS
+angularSuffix Profile with Profile
+clientRootFolder Profile with account
