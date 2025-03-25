@@ -1,108 +1,114 @@
 import os
+import pandas as pd
 
-def generate_app_jdl(
-  application_type="monolith",
-  authentication_type="jwt",
-  base_name="sampleApp",
-  build_tool="maven",
-  cache_provider="ehcache",
-  client_framework="angular",
-  client_package_manager="npm",
-  client_theme=None,  # se for "none", não aparece
-  client_theme_variant=None,
-  database_type="sql",
-  dev_database_type="h2Disk",
-  dto_suffix="DTO",
-  enable_hibernate_cache=True,
-  enable_swagger_codegen=False,
-  enable_translation=True,
-  entity_suffix="Entity",
-  jhi_prefix="jhi",
-  languages=None,
-  message_broker="no",
-  native_language="en",
-  package_name="com.example.myapp",
-  prod_database_type="mysql",
-  reactive=False,
-  search_engine="elasticsearch",
-  server_port=8080,
-  service_discovery_type="no",
-  skip_client=False,
-  skip_server=False,
-  skip_user_management=False,
-  test_frameworks=None,
-  websocket="no"
-):
-  """
-  Gera o bloco de application { config { ... } } ignorando parâmetros cujo valor é None
-  ou que sejam explicitamente a string "none" (em qualquer capitalização).
-  Dessa forma, linhas como "clientTheme none" não aparecem no JDL.
-  """
+def generate_app_jdl(**config_params):
+    """
+    Gera o bloco de application { config { ... } } com base nos parâmetros fornecidos.
+    Ignora parâmetros cujo valor é None ou que sejam explicitamente a string "none".
+    """
+    lines = []
+    lines.append("application {")
+    lines.append("  config {")
 
-  if languages is None:
-      languages = ["en", "fr"]  # valor padrão
+    for key, value in config_params.items():
+        # Se for None ou string "none" (ignorando maiúsculas/minúsculas), pula a linha
+        if value is None or (isinstance(value, str) and value.lower() == "none"):
+            continue
+            
+        # Formata valores booleanos como 'true' ou 'false'
+        if isinstance(value, bool):
+            value = str(value).lower()
+            
+        # Formata listas como [item1, item2]
+        if isinstance(value, list):
+            value = f"[{', '.join(value)}]"
+            
+        lines.append(f"    {key} {value}")
 
-  if test_frameworks is None:
-      test_frameworks = ["cucumber", "protractor", "jest"]  # valor padrão
+    lines.append("  }")
+    lines.append("}")
 
-  config_params = {
-      "applicationType": application_type,
-      "authenticationType": authentication_type,
-      "baseName": base_name,
-      "buildTool": build_tool,
-      "cacheProvider": cache_provider,
-      "clientFramework": client_framework,
-      "clientPackageManager": client_package_manager,
-      "clientTheme": client_theme,
-      "clientThemeVariant": client_theme_variant,
-      "databaseType": database_type,
-      "devDatabaseType": dev_database_type,
-      "dtoSuffix": dto_suffix,
-      "enableHibernateCache": str(enable_hibernate_cache).lower(),
-      "enableSwaggerCodegen": str(enable_swagger_codegen).lower(),
-      "enableTranslation": str(enable_translation).lower(),
-      "entitySuffix": entity_suffix,
-      "jhiPrefix": jhi_prefix,
-      "languages": f"[{', '.join(languages)}]" if languages else None,
-      "messageBroker": message_broker,
-      "nativeLanguage": native_language,
-      "packageName": package_name,
-      "prodDatabaseType": prod_database_type,
-      "reactive": str(reactive).lower(),
-      "searchEngine": search_engine,
-      "serverPort": server_port,
-      "serviceDiscoveryType": service_discovery_type,
-      "skipClient": str(skip_client).lower(),
-      "skipServer": str(skip_server).lower(),
-      "skipUserManagement": str(skip_user_management).lower(),
-      "testFrameworks": f"[{', '.join(test_frameworks)}]" if test_frameworks else None,
-      "websocket": websocket
-  }
-
-  lines = []
-  lines.append("application {")
-  lines.append("  config {")
-
-  for key, value in config_params.items():
-      # Se for None ou string "none" (ignorando maiúsculas/minúsculas), pula a linha
-      if value is None or (isinstance(value, str) and value.lower() == "none"):
-          continue
-      lines.append(f"    {key} {value}")
-
-  lines.append("  }")
-  lines.append("}")
-
-  return "\n".join(lines) + "\n"
+    return "\n".join(lines) + "\n"
 
 def main():
-  base_dir = os.path.dirname(os.path.abspath(__file__))
-  output_file = os.path.join(base_dir, "APP.jdl")
-
-  jdl_content = generate_app_jdl()
-  with open(output_file, "w", encoding="utf-8") as f:
-      f.write(jdl_content)
-
-  print(f"Arquivo 'APP.jdl' gerado/atualizado!")
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    excel_file_name = "TABELA_DE_CONFIGURACAO_JHIPSTER.xlsx"
+    excel_file_path = os.path.join(base_dir, excel_file_name)
+    aba_app = "APP"
+    output_file = os.path.join(base_dir, "APP.jdl")
+    
+    if not os.path.exists(excel_file_path):
+        print(f"[ERRO] Arquivo de planilha '{excel_file_path}' não encontrado.")
+        return
+    
+    try:
+        # Lê a planilha com as configurações da aplicação
+        df = pd.read_excel(excel_file_path, sheet_name=aba_app, dtype=str)
+        
+        # Verifica se a planilha tem o formato esperado (uma linha por parâmetro)
+        if 'Parameter' in df.columns and 'Value' in df.columns:
+            # Formato: Parameter | Value
+            config = {}
+            for _, row in df.iterrows():
+                param = row.get("Parameter", "").strip()
+                value = row.get("Value", "").strip()
+                
+                if param:
+                    # Converte valores booleanos e numéricos
+                    if value.lower() in ["true", "yes", "1"]:
+                        value = True
+                    elif value.lower() in ["false", "no", "0"]:
+                        value = False
+                    elif value.isdigit():
+                        value = int(value)
+                    elif value.lower() == "none":
+                        value = None
+                    elif "," in value and not value.startswith("["):
+                        # Converte strings separadas por vírgula em listas
+                        value = [item.strip() for item in value.split(",")]
+                    
+                    config[param] = value
+        else:
+            # Formato: uma coluna por parâmetro, uma linha de valores
+            config = {}
+            # Pega a primeira linha de dados (assumindo que é a linha de valores)
+            if len(df) > 0:
+                for col in df.columns:
+                    param = col.strip()
+                    value = str(df.iloc[0][col]).strip() if not pd.isna(df.iloc[0][col]) else None
+                    
+                    if param and value is not None:
+                        # Converte valores booleanos e numéricos
+                        if value.lower() in ["true", "yes", "1"]:
+                            value = True
+                        elif value.lower() in ["false", "no", "0"]:
+                            value = False
+                        elif value.isdigit():
+                            value = int(value)
+                        elif value.lower() == "none":
+                            value = None
+                        elif "," in value and not value.startswith("["):
+                            # Converte strings separadas por vírgula em listas
+                            value = [item.strip() for item in value.split(",")]
+                        
+                        # Converte snake_case para camelCase para os parâmetros
+                        parts = param.split('_')
+                        camel_param = parts[0] + ''.join(word.capitalize() for word in parts[1:])
+                        
+                        config[camel_param] = value
+        
+        # Gera o JDL com os parâmetros da planilha
+        jdl_content = generate_app_jdl(**config)
+        
+    except Exception as e:
+        print(f"[ERRO] Falha ao processar configurações da aplicação: {str(e)}")
+        return
+    
+    # Escreve no arquivo
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.write(jdl_content)
+        
+    print(f"Arquivo 'APP.jdl' gerado/atualizado!")
 
 if __name__ == "__main__":
-  main()
+    main()

@@ -4,10 +4,15 @@ import sys
 
 def main():
     base_dir = os.path.dirname(os.path.abspath(__file__))
-
-    # Use the current Python interpreter instead of relying on 'python' in PATH
+    
+    # Use the current Python interpreter
     python_executable = sys.executable
+    print(python_executable)
+    print(base_dir)
+    print("BASE")
 
+
+    
     scripts = [
         "APP.py",
         "ENTIDADES.py",
