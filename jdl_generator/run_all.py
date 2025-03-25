@@ -1,8 +1,12 @@
 import os
 import subprocess
+import sys
 
 def main():
     base_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Use the current Python interpreter instead of relying on 'python' in PATH
+    python_executable = sys.executable
 
     scripts = [
         "APP.py",
@@ -18,7 +22,7 @@ def main():
     for script in scripts:
         script_path = os.path.join(base_dir, script)
         print(f"Running {script_path} ...")
-        subprocess.run(["python", script_path], check=True)
+        subprocess.run([python_executable, script_path], check=True)
         print(f"Finished {script_path}\n")
 
     print("All scripts executed successfully!")
